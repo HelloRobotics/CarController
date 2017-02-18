@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">CarController</string>
+    <string name="main_device_name">Device name:</string>
+    <string name="main_go">Go!</string>
+
+    <string name="dialog_error_no_ble">Bluetooth Low Energy not supported</string>
+    <string name="dialog_error_no_bluetooth">Bluetooth not available</string>
+</resources>
