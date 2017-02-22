@@ -39,6 +39,7 @@ public class HelperBle {
     private BluetoothGattService service;
 
     private DataReceiveListener dataListener;
+    private InstructionListener instListener;
     private ScanCallback callbackScan;
 
     public HelperBle(Context context) {
@@ -100,10 +101,6 @@ public class HelperBle {
     }
 
     public void sendData(byte[] data) {
-        if (service == null) {
-            gatt.discoverServices();
-            service = gatt.getService(UUID_SERVICE);
-        }
         if (service != null) {
             for (int i = 0; i < data.length; i += kTxMaxCharacters) {
                 final byte[] chunk = Arrays.copyOfRange(data, i, Math.min(i + kTxMaxCharacters, data.length));
@@ -123,14 +120,26 @@ public class HelperBle {
         sendData(value);
     }
 
-    public void setDataRecriveListener(DataReceiveListener l) {
+    public void sendData(Instruction inst) {
+        sendData(inst.toByteArray());
+    }
+
+    public void setDataReceiveListener(DataReceiveListener l) {
         dataListener = l;
+    }
+
+    public void setInstListener(InstructionListener l) {
+        instListener = l;
     }
 
     public enum enumBleState {UNAVAILABLE, DISABLED, AVAILABLE}
 
     public interface DataReceiveListener {
         void onDataReceive(byte[] data);
+    }
+
+    public interface InstructionListener {
+        void onInstruction(Instruction instruction);
     }
 
     private class MyBluetoothGattCallback extends BluetoothGattCallback {
@@ -152,6 +161,8 @@ public class HelperBle {
                     final byte[] bytes = characteristic.getValue();
                     if (dataListener != null)
                         dataListener.onDataReceive(bytes);
+                    if (instListener != null)
+                        instListener.onInstruction(Instruction.fromByteArray(bytes));
                 }
             }
         }

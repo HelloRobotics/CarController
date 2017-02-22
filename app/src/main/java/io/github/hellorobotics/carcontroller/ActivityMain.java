@@ -1,5 +1,6 @@
 package io.github.hellorobotics.carcontroller;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
@@ -24,11 +25,6 @@ public class ActivityMain extends AppCompatActivity {
     }
 
     private void tryConnectDevice() {
-        ensureBluetoothAvailable();
-        ble.startScan(new MyScanCallback());
-    }
-
-    private void ensureBluetoothAvailable() {
         switch (ble.getState()) {
             case UNAVAILABLE:
                 new AlertDialog.Builder(this).setMessage(R.string.dialog_error_no_bluetooth).
@@ -37,8 +33,10 @@ public class ActivityMain extends AppCompatActivity {
                 break;
             case DISABLED:
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, 0);
+                startActivityForResult(enableBtIntent, Activity.RESULT_OK);
                 break;
+            default:
+                ble.startScan(new MyScanCallback());
         }
     }
 
@@ -46,6 +44,8 @@ public class ActivityMain extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != RESULT_OK)
             finishAffinity();
+        else
+            ble.startScan(new MyScanCallback());
     }
 
     private String getNameToSearch() {
