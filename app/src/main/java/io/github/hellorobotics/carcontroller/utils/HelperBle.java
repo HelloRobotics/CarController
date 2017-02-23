@@ -16,6 +16,7 @@ import android.content.Context;
 import android.os.ParcelUuid;
 import android.util.Log;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Objects;
@@ -37,6 +38,7 @@ public class HelperBle {
     private BluetoothAdapter adapter;
     private BluetoothGatt gatt;
     private BluetoothGattService service;
+    private byte[] unfinishedInstruction;
 
     private DataReceiveListener dataListener;
     private InstructionListener instListener;
@@ -157,14 +159,53 @@ public class HelperBle {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             if (characteristic.getService().getUuid().equals(UUID_SERVICE)) {
                 if (characteristic.getUuid().equals(UUID_RX)) {
-                    Log.d(Constants.TAG, "sendData received data");
                     final byte[] bytes = characteristic.getValue();
                     if (dataListener != null)
                         dataListener.onDataReceive(bytes);
-                    if (instListener != null)
-                        instListener.onInstruction(Instruction.fromByteArray(bytes));
+                    if (unfinishedInstruction != null) {
+                        byte[] buffer = new byte[unfinishedInstruction.length + bytes.length];
+                        System.arraycopy(unfinishedInstruction, 0, buffer, 0, unfinishedInstruction.length);
+                        System.arraycopy(bytes, 0, buffer, unfinishedInstruction.length, bytes.length);
+                        if (buffer[buffer.length - 1] != Instruction.ETB) {
+                            unfinishedInstruction = buffer;
+                        } else {
+                            unfinishedInstruction = null;
+                            if (instListener != null)
+                                try {
+                                    instListener.onInstruction(Instruction.fromByteArray(buffer));
+                                } catch (Exception e) {
+                                    new IOException(genError(buffer), e).printStackTrace();
+                                }
+
+                        }
+                    } else if (bytes[bytes.length - 1] != Instruction.ETB) {
+                        unfinishedInstruction = bytes;
+                    } else if (instListener != null) {
+                        try {
+                            instListener.onInstruction(Instruction.fromByteArray(bytes));
+                        } catch (Exception e) {
+                            new IOException(genError(bytes), e).printStackTrace();
+                        }
+                    }
                 }
             }
+        }
+
+        private String genError(byte[] data) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("Data: ");
+            for (byte b : data) {
+                stringBuilder.append(String.format("0x%02x ", b));
+            }
+            stringBuilder.append(", Buffered: ");
+            if (unfinishedInstruction == null)
+                stringBuilder.append("None.");
+            else {
+                for (byte b : unfinishedInstruction) {
+                    stringBuilder.append(String.format("0x%02x ", b));
+                }
+            }
+            return stringBuilder.toString();
         }
 
         @Override

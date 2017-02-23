@@ -45,9 +45,10 @@ public class Instruction {
                     "Data size: " + data.length + ". Exceeds limitation");
         ByteBuffer byteBuffer = ByteBuffer.allocate(20);
         byteBuffer.put(data).flip();
-        byte buf[] = new byte[byteBuffer.remaining() - 1];
-        enumInstruction code = enumInstruction.fromByte(byteBuffer.get());
-        byteBuffer.get(buf, 0, byteBuffer.remaining());
+        byte buf[] = new byte[byteBuffer.remaining() - 2];
+        byte b = byteBuffer.get();
+        enumInstruction code = enumInstruction.fromByte(b);
+        byteBuffer.get(buf, 0, byteBuffer.remaining() - 1);
         return new Instruction(code, buf);
     }
 
@@ -91,7 +92,7 @@ public class Instruction {
                 case 0x02:
                     return MISO_DIRECTION;
                 default:
-                    throw new UnsupportedOperationException();
+                    throw new UnsupportedOperationException("Code:" + String.format("0x%2x", b));
             }
         }
 

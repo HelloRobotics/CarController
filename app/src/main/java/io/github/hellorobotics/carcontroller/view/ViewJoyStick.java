@@ -107,9 +107,10 @@ public class ViewJoyStick extends View {
     private void notifyListener(float x, float y) {
         double angle = Math.atan2(-y, x);
         double dist = Math.pow(x * x + y * y, 0.5) / radiusRange;
-        if (listener != null)
+        if (listener != null) {
             listener.onDataChange((int) Math.round(dist * myFunc(angle, true)),
                     (int) Math.round(dist * myFunc(angle, false)));
+        }
     }
 
     private double modifiedCos(double x) {
@@ -129,9 +130,9 @@ public class ViewJoyStick extends View {
 
     private double myFunc(double x, boolean left) {
         if (left)
-            return myFunc(x) * 256;
+            return myFunc(x) * 127;
         else
-            return -myFunc(-x) * 256;
+            return -myFunc(-x) * 127;
     }
 
     @Override
