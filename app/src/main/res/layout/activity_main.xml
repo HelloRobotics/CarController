@@ -29,7 +29,8 @@
         android:ems="10"
         android:gravity="center_vertical|center_horizontal"
         android:inputType="textPersonName"
-        android:text="" />
+        android:text=""
+        tools:ignore="LabelFor" />
 
     <TextView
         android:id="@+id/textView2"
