@@ -2,6 +2,7 @@ package io.github.hellorobotics.carcontroller.utils;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 
 /**
  * Author: towdium
@@ -35,7 +36,7 @@ public class Instruction {
         this.data = new byte[finished ? data.length() + 1 : data.length()];
         byte[] buf = data.getBytes(Charset.forName("UTF-8"));
         System.arraycopy(buf, 0, this.data, 0, buf.length);
-        if (finished) buf[data.length()] = '\0';
+        if (finished) this.data[data.length()] = '\0';
     }
 
     public static Instruction fromByteArray(byte[] data) throws IllegalArgumentException {
@@ -43,20 +44,17 @@ public class Instruction {
             throw new IllegalArgumentException(
                     "Data size: " + data.length + ". Exceeds limitation");
         ByteBuffer byteBuffer = ByteBuffer.allocate(20);
-        byteBuffer.put(data);
-        byte buf[] = new byte[byteBuffer.remaining() - 2];
+        byteBuffer.put(data).flip();
+        byte buf[] = new byte[byteBuffer.remaining() - 1];
         enumInstruction code = enumInstruction.fromByte(byteBuffer.get());
-        byteBuffer.get(buf, 0, byteBuffer.remaining() - 1);
-        if (byteBuffer.get() != ETB)
-            throw new IllegalArgumentException("Undetected instruction end");
-
+        byteBuffer.get(buf, 0, byteBuffer.remaining());
         return new Instruction(code, buf);
     }
 
     public byte[] toByteArray() {
         ByteBuffer byteBuffer = ByteBuffer.allocate(20);
         byteBuffer.put(code.toByte()).put(data).put(ETB);
-        return byteBuffer.array();
+        return Arrays.copyOf(byteBuffer.array(), byteBuffer.position());
     }
 
     public enumInstruction getCode() {
@@ -72,7 +70,7 @@ public class Instruction {
     }
 
     public String getString() {
-        return new String(data, Charset.forName("UTF-8"));
+        return new String(data, 0, data.length - 1, Charset.forName("UTF-8"));
     }
 
     public boolean isFinished() {
@@ -80,7 +78,7 @@ public class Instruction {
     }
 
 
-    enum enumInstruction {
+    public enum enumInstruction {
         MOSI_TEXT, MOSI_REQUEST, MOSI_SPEED,
         MISO_TEXT, MISO_DISTANCE, MISO_DIRECTION;
 
