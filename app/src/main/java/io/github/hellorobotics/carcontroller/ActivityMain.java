@@ -10,10 +10,12 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.EditText;
 
+import io.github.hellorobotics.carcontroller.utils.Constants;
 import io.github.hellorobotics.carcontroller.utils.HelperBle;
 
 public class ActivityMain extends AppCompatActivity {
 
+    private static final String keyDeviceName = "device_name";
     private HelperBle ble;
 
     @Override
@@ -21,7 +23,12 @@ public class ActivityMain extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ble = new HelperBle(this);
         setContentView(R.layout.activity_main);
-        findViewById(R.id.button).setOnClickListener(v -> tryConnectDevice());
+        ((EditText) findViewById(R.id.editText2)).setText(getSharedPreferences(Constants.TAG, MODE_PRIVATE).getString(keyDeviceName, null));
+        findViewById(R.id.button).setOnClickListener(v -> {
+            tryConnectDevice();
+            getSharedPreferences(Constants.TAG, MODE_PRIVATE).edit().
+                    putString(keyDeviceName, getNameToSearch()).apply();
+        });
     }
 
     private void tryConnectDevice() {

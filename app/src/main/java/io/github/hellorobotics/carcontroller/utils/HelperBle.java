@@ -38,6 +38,8 @@ public class HelperBle {
     private BluetoothAdapter adapter;
     private BluetoothGatt gatt;
     private BluetoothGattService service;
+    private BluetoothDevice device;
+
     private byte[] unfinishedInstruction;
 
     private DataReceiveListener dataListener;
@@ -93,6 +95,7 @@ public class HelperBle {
 
     public void disconnect() {
         if (gatt != null) {
+            device = null;
             gatt.disconnect();
             gatt.close();
         }
@@ -100,6 +103,7 @@ public class HelperBle {
 
     public void connect(BluetoothDevice device) {
         gatt = device.connectGatt(context, false, new MyBluetoothGattCallback());
+        this.device = device;
     }
 
     public void sendData(byte[] data) {
@@ -213,7 +217,11 @@ public class HelperBle {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                Log.i(Constants.TAG, "Disconnected.");
+                if (device != null) {
+                    connect(device);
+                } else {
+                    Log.i(Constants.TAG, "Disconnected.");
+                }
             }
         }
     }
