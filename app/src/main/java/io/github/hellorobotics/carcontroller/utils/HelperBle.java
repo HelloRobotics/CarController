@@ -17,6 +17,7 @@ import android.os.ParcelUuid;
 import android.util.Log;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Objects;
@@ -40,7 +41,7 @@ public class HelperBle {
     private BluetoothGattService service;
     private BluetoothDevice device;
 
-    private byte[] unfinishedInstruction;
+    private ByteBuffer buffer = ByteBuffer.allocate(100);
 
     private DataReceiveListener dataListener;
     private InstructionListener instListener;
@@ -163,53 +164,42 @@ public class HelperBle {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             if (characteristic.getService().getUuid().equals(UUID_SERVICE)) {
                 if (characteristic.getUuid().equals(UUID_RX)) {
-                    final byte[] bytes = characteristic.getValue();
+                    byte[] bytes = characteristic.getValue();
                     if (dataListener != null)
                         dataListener.onDataReceive(bytes);
-                    if (unfinishedInstruction != null) {
-                        byte[] buffer = new byte[unfinishedInstruction.length + bytes.length];
-                        System.arraycopy(unfinishedInstruction, 0, buffer, 0, unfinishedInstruction.length);
-                        System.arraycopy(bytes, 0, buffer, unfinishedInstruction.length, bytes.length);
-                        if (buffer[buffer.length - 1] != Instruction.ETB) {
-                            unfinishedInstruction = buffer;
-                        } else {
-                            unfinishedInstruction = null;
-                            if (instListener != null)
-                                try {
-                                    instListener.onInstruction(Instruction.fromByteArray(buffer));
-                                } catch (Exception e) {
-                                    new IOException(genError(buffer), e).printStackTrace();
-                                }
-
-                        }
-                    } else if (bytes[bytes.length - 1] != Instruction.ETB) {
-                        unfinishedInstruction = bytes;
-                    } else if (instListener != null) {
-                        try {
-                            instListener.onInstruction(Instruction.fromByteArray(bytes));
-                        } catch (Exception e) {
-                            new IOException(genError(bytes), e).printStackTrace();
-                        }
+                    buffer.put(bytes);
+                    buffer.flip();
+                    while (readInstructions()) {
                     }
                 }
             }
         }
 
-        private String genError(byte[] data) {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("Data: ");
-            for (byte b : data) {
-                stringBuilder.append(String.format("0x%02x ", b));
-            }
-            stringBuilder.append(", Buffered: ");
-            if (unfinishedInstruction == null)
-                stringBuilder.append("None.");
-            else {
-                for (byte b : unfinishedInstruction) {
-                    stringBuilder.append(String.format("0x%02x ", b));
+        private boolean readInstructions() {
+            ByteBuffer buf = ByteBuffer.allocate(25);
+            byte c;
+            do {
+                c = buffer.get();
+                buf.put(c);
+            } while (c != Instruction.ETB && buffer.remaining() != 0);
+            byte[] inst = new byte[buf.flip().remaining()];
+            buf.get(inst);
+            if (inst[inst.length - 1] != Instruction.ETB) {
+                buffer.clear();
+                buffer.put(inst);
+                return false;
+            } else {
+                boolean ret = buffer.remaining() != 0;
+                try {
+                    instListener.onInstruction(Instruction.fromByteArray(inst));
+                } catch (Exception e) {
+                    new IOException(Utilities.arrayToString(inst), e).printStackTrace();
                 }
+                if (!ret) {
+                    buffer.clear();
+                }
+                return ret;
             }
-            return stringBuilder.toString();
         }
 
         @Override

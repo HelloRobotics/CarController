@@ -5,13 +5,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.TextView;
 
-import io.github.hellorobotics.carcontroller.utils.Constants;
 import io.github.hellorobotics.carcontroller.utils.HelperBle;
 import io.github.hellorobotics.carcontroller.utils.Instruction;
 import io.github.hellorobotics.carcontroller.utils.Instruction.enumInstruction;
+import io.github.hellorobotics.carcontroller.utils.Utilities;
 import io.github.hellorobotics.carcontroller.view.ViewJoyStick;
 
 /**
@@ -46,7 +46,10 @@ public class ActivityControl extends AppCompatActivity implements HelperBle.Inst
 
     @Override
     public void onInstruction(Instruction instruction) {
-        Log.i(Constants.TAG, instruction.getString());
+        if (instruction.getCode() == enumInstruction.MISO_DIRECTION) {
+            runOnUiThread(() -> ((TextView) findViewById(R.id.textView)).setText(String.format("%s",
+                    Integer.toString(Utilities.toUnsigned(instruction.getData(0))))));
+        }
     }
 
     @Override
