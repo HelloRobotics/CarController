@@ -17,6 +17,7 @@ import android.os.ParcelUuid;
 import android.util.Log;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -167,7 +168,13 @@ public class HelperBle {
                     byte[] bytes = characteristic.getValue();
                     if (dataListener != null)
                         dataListener.onDataReceive(bytes);
-                    buffer.put(bytes);
+                    try {
+                        buffer.put(bytes);
+                    } catch (BufferOverflowException e) {
+                        buffer.clear();
+                    }
+
+
                     buffer.flip();
                     while (readInstructions()) {
                     }
@@ -177,11 +184,27 @@ public class HelperBle {
 
         private boolean readInstructions() {
             ByteBuffer buf = ByteBuffer.allocate(25);
-            byte c;
-            do {
-                c = buffer.get();
-                buf.put(c);
-            } while (c != Instruction.ETB && buffer.remaining() != 0);
+            byte c = buffer.get();
+            Instruction.enumInstruction en = Instruction.enumInstruction.fromByte(c);
+            buf.put(c);
+            int len = en.getLen();
+            if (len == Instruction.LENGTH_DYNAMIC) {
+                while (c != Instruction.ETB && buffer.remaining() != 0) {
+                    c = buffer.get();
+                    buf.put(c);
+                }
+            } else {
+                for (int i = 0; i <= len; i++) {
+                    if (buffer.remaining() == 0) {
+                        buffer.clear();
+                        buf.flip();
+                        buffer.put(buf);
+                        return false;
+                    }
+                    c = buffer.get();
+                    buf.put(c);
+                }
+            }
             byte[] inst = new byte[buf.flip().remaining()];
             buf.get(inst);
             if (inst[inst.length - 1] != Instruction.ETB) {

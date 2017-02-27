@@ -6,12 +6,12 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
-import android.widget.TextView;
 
 import io.github.hellorobotics.carcontroller.utils.HelperBle;
 import io.github.hellorobotics.carcontroller.utils.Instruction;
 import io.github.hellorobotics.carcontroller.utils.Instruction.enumInstruction;
 import io.github.hellorobotics.carcontroller.utils.Utilities;
+import io.github.hellorobotics.carcontroller.view.ViewCar;
 import io.github.hellorobotics.carcontroller.view.ViewJoyStick;
 
 /**
@@ -32,6 +32,7 @@ public class ActivityControl extends AppCompatActivity implements HelperBle.Inst
         ble.connect(result.getDevice());
         setContentView(R.layout.activity_control);
         ((ViewJoyStick) findViewById(R.id.view)).setListener(this);
+        ((ViewCar) findViewById(R.id.view2)).setDistance(20);
     }
 
     public void onDestroy() {
@@ -46,9 +47,10 @@ public class ActivityControl extends AppCompatActivity implements HelperBle.Inst
 
     @Override
     public void onInstruction(Instruction instruction) {
-        if (instruction.getCode() == enumInstruction.MISO_DIRECTION) {
-            runOnUiThread(() -> ((TextView) findViewById(R.id.textView)).setText(String.format("%s",
-                    Integer.toString(Utilities.toUnsigned(instruction.getData(0))))));
+        if (instruction.getCode() == enumInstruction.MISO_DISTANCE) {
+            runOnUiThread(() -> ((ViewCar) findViewById(R.id.view2)).setDistance(Utilities.toUnsigned(instruction.getData(0))));
+        } else if (instruction.getCode() == enumInstruction.MISO_DIRECTION) {
+            runOnUiThread(() -> ((ViewCar) findViewById(R.id.view2)).setDirection((int) (instruction.getData(0) / 256.0 * 360)));
         }
     }
 

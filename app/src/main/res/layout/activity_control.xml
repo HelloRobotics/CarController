@@ -12,8 +12,24 @@
         android:text="" />
 
     <view
+        android:id="@+id/view2"
+        class="io.github.hellorobotics.carcontroller.view.ViewCar"
+        android:layout_width="wrap_content"
+        android:layout_height="291dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="17dp"
+        android:orientation="vertical"></LinearLayout>
+
+    <view
         android:id="@+id/view"
         class="io.github.hellorobotics.carcontroller.view.ViewJoyStick"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="159dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"></LinearLayout>
 </LinearLayout>

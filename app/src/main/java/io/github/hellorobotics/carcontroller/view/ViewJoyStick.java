@@ -26,7 +26,8 @@ public class ViewJoyStick extends View {
     float radiusButton;
     float radiusBase;
     float radiusRange;
-    float center;
+    float hCenter;
+    float vCenter;
     float circleX;
     float circleY;
     int color = colorInactive;
@@ -61,45 +62,47 @@ public class ViewJoyStick extends View {
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         if (changed) {
+            int ref = Math.min(getWidth(), getHeight());
             circleX = getWidth() / 2;
-            circleY = getWidth() / 2;
-            radiusButton = getWidth() / 9;
-            radiusBase = getWidth() / 4;
+            circleY = getHeight() / 2;
+            radiusButton = ref / 6;
+            radiusBase = ref / 2;
             radiusRange = radiusBase - radiusButton / 3;
-            center = getWidth() / 2;
+            hCenter = getWidth() / 2;
+            vCenter = getHeight() / 2;
         }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
-            ObjectAnimator.ofFloat(ViewJoyStick.this, "circleX", circleX, getWidth() / 2).start();
-            ObjectAnimator.ofFloat(ViewJoyStick.this, "circleY", circleY, getWidth() / 2).start();
+            ObjectAnimator.ofFloat(ViewJoyStick.this, "circleX", circleX, hCenter).start();
+            ObjectAnimator.ofFloat(ViewJoyStick.this, "circleY", circleY, vCenter).start();
             ObjectAnimator.ofArgb(ViewJoyStick.this, "color", colorActive, colorInactive).start();
             notifyListener(0, 0);
         } else if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (Math.pow(event.getY() - center, 2)
-                    + Math.pow(event.getX() - center, 2) < radiusRange * radiusRange) {
+            if (Math.pow(event.getY() - vCenter, 2)
+                    + Math.pow(event.getX() - hCenter, 2) < radiusRange * radiusRange) {
                 circleX = event.getX();
                 circleY = event.getY();
                 ObjectAnimator.ofArgb(ViewJoyStick.this, "color", colorInactive, colorActive)
                         .start();
-                notifyListener(circleX - center, circleY - center);
+                notifyListener(circleX - hCenter, circleY - vCenter);
             } else {
                 return false;
             }
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            double dist = Math.pow(Math.pow(event.getY() - center, 2)
-                    + Math.pow(event.getX() - center, 2), 0.5);
+            double dist = Math.pow(Math.pow(event.getY() - vCenter, 2)
+                    + Math.pow(event.getX() - hCenter, 2), 0.5);
             if (dist < radiusRange) {
                 circleX = event.getX();
                 circleY = event.getY();
             } else {
                 double ratio = radiusRange / dist;
-                circleX = (float) (center + (event.getX() - center) * ratio);
-                circleY = (float) (center + (event.getY() - center) * ratio);
+                circleX = (float) (hCenter + (event.getX() - hCenter) * ratio);
+                circleY = (float) (vCenter + (event.getY() - vCenter) * ratio);
             }
-            notifyListener(circleX - center, circleY - center);
+            notifyListener(circleX - hCenter, circleY - vCenter);
         }
         return true;
     }
@@ -139,7 +142,7 @@ public class ViewJoyStick extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         p.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
-        canvas.drawCircle(center, center, radiusBase, p);
+        canvas.drawCircle(hCenter, vCenter, radiusBase, p);
         p.setColor(color);
         canvas.drawCircle(circleX, circleY, radiusButton, p);
         invalidate();
