@@ -6,7 +6,7 @@
 
     <view
         android:id="@+id/view"
-        class="io.github.hellorobotics.carcontroller.view.ViewJoystickCircle"
+        class="io.github.hellorobotics.carcontroller.view.ViewJoystickSquare$JoystickTouch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/activity_vertical_margin"

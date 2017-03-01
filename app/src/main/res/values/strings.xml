@@ -2,7 +2,8 @@
     <string name="app_name">CarController</string>
     <string name="main_device_name">Device name:</string>
     <string name="main_go">Go!</string>
-    <string name="control_joystick">Joystick</string>
+    <string name="control_joystick_a">Joystick A</string>
+    <string name="control_joystick_b">Joystick B</string>
     <string name="control_gravity">Gravity</string>
 
     <string name="dialog_error_no_ble">Bluetooth Low Energy not supported</string>

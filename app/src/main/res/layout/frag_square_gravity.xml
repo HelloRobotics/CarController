@@ -6,10 +6,8 @@
 
     <view
         android:id="@+id/view"
-        class="io.github.hellorobotics.carcontroller.view.ViewJoystickCircle"
+        class="io.github.hellorobotics.carcontroller.view.ViewJoystickSquare$JoystickGravity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/activity_vertical_margin"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
         android:background="?attr/colorPrimaryDark" />
 </LinearLayout>

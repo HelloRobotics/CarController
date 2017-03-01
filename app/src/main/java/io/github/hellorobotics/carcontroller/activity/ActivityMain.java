@@ -16,6 +16,11 @@ import io.github.hellorobotics.carcontroller.Constants;
 import io.github.hellorobotics.carcontroller.R;
 import io.github.hellorobotics.carcontroller.utils.HelperBle;
 
+/**
+ * Author: towdium
+ * Date:   15/02/17.
+ */
+
 public class ActivityMain extends AppCompatActivity {
 
     private static final String keyDeviceName = "device_name";
