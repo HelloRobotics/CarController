@@ -21,8 +21,10 @@ import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.UUID;
+
+import io.github.hellorobotics.carcontroller.Constants;
+import io.github.hellorobotics.carcontroller.core.Instruction;
 
 /**
  * Author: towdium
@@ -78,7 +80,6 @@ public class HelperBle {
     }
 
     public void startScan(ScanCallback callback) {
-        Objects.requireNonNull(callback);
         if (adapter != null) {
             disconnect();
             stopScan();
@@ -172,10 +173,9 @@ public class HelperBle {
                         buffer.put(bytes);
                     } catch (BufferOverflowException e) {
                         buffer.clear();
-                    }
-
-
+                    } // TODO
                     buffer.flip();
+                    //noinspection StatementWithEmptyBody
                     while (readInstructions()) {
                     }
                 }

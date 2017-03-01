@@ -16,7 +16,7 @@ import io.github.hellorobotics.carcontroller.R;
  * Date:   23/02/17.
  */
 
-public class ViewJoyStick extends View {
+public class ViewJoyStickCircle extends View {
     final int colorActive = ContextCompat.getColor(getContext(), R.color.colorAccent);
     final int colorInactive = ContextCompat.getColor(getContext(), R.color.colorAccentInactive);
     final double halfPi = Math.PI / 2;
@@ -31,23 +31,28 @@ public class ViewJoyStick extends View {
     float circleX;
     float circleY;
     int color = colorInactive;
-    JoyStickListener listener;
+    ControlListener controlListener;
+    StateListener stateListener;
 
-    public ViewJoyStick(Context context) {
+    public ViewJoyStickCircle(Context context) {
         super(context);
     }
 
-
-    public ViewJoyStick(Context context, AttributeSet attrs) {
+    public ViewJoyStickCircle(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public ViewJoyStick(Context context, AttributeSet attrs, int defStyleAttr) {
+
+    public ViewJoyStickCircle(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
-    public void setListener(JoyStickListener listener) {
-        this.listener = listener;
+    public void setStateListener(StateListener stateListener) {
+        this.stateListener = stateListener;
+    }
+
+    public void setControlListener(ControlListener controlListener) {
+        this.controlListener = controlListener;
     }
 
     public int getColor() {
@@ -65,8 +70,8 @@ public class ViewJoyStick extends View {
             int ref = Math.min(getWidth(), getHeight());
             circleX = getWidth() / 2;
             circleY = getHeight() / 2;
-            radiusButton = ref / 6;
-            radiusBase = ref / 2;
+            radiusButton = ref / 7;
+            radiusBase = ref / 5 * 2;
             radiusRange = radiusBase - radiusButton / 3;
             hCenter = getWidth() / 2;
             vCenter = getHeight() / 2;
@@ -76,18 +81,22 @@ public class ViewJoyStick extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
-            ObjectAnimator.ofFloat(ViewJoyStick.this, "circleX", circleX, hCenter).start();
-            ObjectAnimator.ofFloat(ViewJoyStick.this, "circleY", circleY, vCenter).start();
-            ObjectAnimator.ofArgb(ViewJoyStick.this, "color", colorActive, colorInactive).start();
+            ObjectAnimator.ofFloat(ViewJoyStickCircle.this, "circleX", circleX, hCenter).start();
+            ObjectAnimator.ofFloat(ViewJoyStickCircle.this, "circleY", circleY, vCenter).start();
+            ObjectAnimator.ofArgb(ViewJoyStickCircle.this, "color", colorActive, colorInactive).start();
             notifyListener(0, 0);
+            if (stateListener != null)
+                stateListener.onStateChange(false);
         } else if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (Math.pow(event.getY() - vCenter, 2)
                     + Math.pow(event.getX() - hCenter, 2) < radiusRange * radiusRange) {
                 circleX = event.getX();
                 circleY = event.getY();
-                ObjectAnimator.ofArgb(ViewJoyStick.this, "color", colorInactive, colorActive)
+                ObjectAnimator.ofArgb(ViewJoyStickCircle.this, "color", colorInactive, colorActive)
                         .start();
                 notifyListener(circleX - hCenter, circleY - vCenter);
+                if (stateListener != null)
+                    stateListener.onStateChange(true);
             } else {
                 return false;
             }
@@ -110,8 +119,8 @@ public class ViewJoyStick extends View {
     private void notifyListener(float x, float y) {
         double angle = Math.atan2(-y, x);
         double dist = Math.pow(x * x + y * y, 0.5) / radiusRange;
-        if (listener != null) {
-            listener.onDataChange((int) Math.round(dist * myFunc(angle, true)),
+        if (controlListener != null) {
+            controlListener.onDataChange((int) Math.round(dist * myFunc(angle, true)),
                     (int) Math.round(dist * myFunc(angle, false)));
         }
     }
@@ -141,7 +150,7 @@ public class ViewJoyStick extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        p.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
+        p.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
         canvas.drawCircle(hCenter, vCenter, radiusBase, p);
         p.setColor(color);
         canvas.drawCircle(circleX, circleY, radiusButton, p);
@@ -164,7 +173,11 @@ public class ViewJoyStick extends View {
         this.circleY = circleY;
     }
 
-    public interface JoyStickListener {
+    public interface ControlListener {
         void onDataChange(int left, int right);
+    }
+
+    public interface StateListener {
+        void onStateChange(boolean state);
     }
 }

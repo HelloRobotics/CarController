@@ -1,16 +1,19 @@
-package io.github.hellorobotics.carcontroller;
+package io.github.hellorobotics.carcontroller.activity;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.EditText;
 
-import io.github.hellorobotics.carcontroller.utils.Constants;
+import io.github.hellorobotics.carcontroller.Constants;
+import io.github.hellorobotics.carcontroller.R;
 import io.github.hellorobotics.carcontroller.utils.HelperBle;
 
 public class ActivityMain extends AppCompatActivity {
@@ -23,19 +26,31 @@ public class ActivityMain extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ble = new HelperBle(this);
         setContentView(R.layout.activity_main);
-        ((EditText) findViewById(R.id.editText2)).setText(getSharedPreferences(Constants.TAG, MODE_PRIVATE).getString(keyDeviceName, null));
-        findViewById(R.id.button).setOnClickListener(v -> {
-            tryConnectDevice();
-            getSharedPreferences(Constants.TAG, MODE_PRIVATE).edit().
-                    putString(keyDeviceName, getNameToSearch()).apply();
+        ((EditText) findViewById(R.id.editText2))
+                .setText(getSharedPreferences(Constants.TAG, MODE_PRIVATE)
+                        .getString(keyDeviceName, null));
+        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tryConnectDevice();
+                getSharedPreferences(Constants.TAG, MODE_PRIVATE).edit().
+                        putString(keyDeviceName, getNameToSearch()).apply();
+            }
         });
     }
 
     private void tryConnectDevice() {
         switch (ble.getState()) {
             case UNAVAILABLE:
-                new AlertDialog.Builder(this).setMessage(R.string.dialog_error_no_bluetooth).
-                        setPositiveButton(android.R.string.ok, (dialog, which) -> finishAffinity())
+                new AlertDialog.Builder(this)
+                        .setMessage(R.string.dialog_error_no_bluetooth)
+                        .setPositiveButton(android.R.string.ok,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finishAffinity();
+                                    }
+                                })
                         .show();
                 break;
             case DISABLED:

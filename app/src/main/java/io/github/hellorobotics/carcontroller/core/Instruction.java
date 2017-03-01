@@ -1,4 +1,4 @@
-package io.github.hellorobotics.carcontroller.utils;
+package io.github.hellorobotics.carcontroller.core;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -83,7 +83,7 @@ public class Instruction {
         MOSI_TEXT, MOSI_REQUEST, MOSI_SPEED,
         MISO_TEXT, MISO_DISTANCE, MISO_DIRECTION;
 
-        static enumInstruction fromByte(byte b) {
+        public static enumInstruction fromByte(byte b) {
             switch (b) {
                 case 0x00:
                     return MISO_TEXT;
@@ -96,7 +96,7 @@ public class Instruction {
             }
         }
 
-        byte toByte() {
+        public byte toByte() {
             switch (this) {
                 case MOSI_TEXT:
                     return 0x00;
@@ -115,7 +115,7 @@ public class Instruction {
             }
         }
 
-        int getLen() {
+        public int getLen() {
             switch (this) {
                 case MOSI_TEXT:
                     return LENGTH_DYNAMIC;
@@ -134,7 +134,7 @@ public class Instruction {
             }
         }
 
-        boolean isText() {
+        public boolean isText() {
             return this == MISO_TEXT || this == MOSI_TEXT;
         }
     }
